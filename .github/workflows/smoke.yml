@@ -19,6 +19,11 @@ jobs:
           printf '1\nH8\nq\n' | node play.js | grep -q 'A B C D E F G'
           printf '2\nD3\nq\n' | node play.js | grep -q 'A B C D E F G H'
           printf '3\n5\nq\n' | node play.js | grep -q '1:·'
+          printf '4\nq\n' | node play.js | grep -q '筹码'
+      - name: 二十一点会结算
+        run: |
+          out=$(printf '4\ns\ns\nq\n' | node play.js)
+          echo "$out" | grep -q '筹码 1[05]0'
       - name: 悔棋能退干净
         run: |
           printf '1\nu\nq\n' | node play.js | grep -q '还没下呢'

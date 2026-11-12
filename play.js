@@ -520,15 +520,127 @@ async function playTicTacToe() {
   }
 }
 
+
+/* ========================= 二十一点 ========================= */
+
+const BRANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const BSUITS = ['\u2660', '\u2665', '\u2666', '\u2663'];
+
+function bShoe(n = 4) {
+  const shoe = [];
+  for (let i = 0; i < n; i++) for (const su of BSUITS) for (const r of BRANKS) shoe.push({ r, s: su });
+  for (let i = shoe.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shoe[i], shoe[j]] = [shoe[j], shoe[i]];
+  }
+  return shoe;
+}
+
+function bValue(cards) {
+  let total = 0;
+  let aces = 0;
+  for (const c of cards) {
+    if (c.r === 'A') {
+      total += 11;
+      aces++;
+    } else if (c.r === 'J' || c.r === 'Q' || c.r === 'K') total += 10;
+    else total += parseInt(c.r, 10);
+  }
+  while (total > 21 && aces > 0) {
+    total -= 10;
+    aces--;
+  }
+  return total;
+}
+
+const bFmt = (c) => c.r + c.s;
+const bHand = (cards) => cards.map(bFmt).join(' ');
+
+async function playBlackjack() {
+  const shoe = bShoe();
+  let chips = 100;
+  const BET = 10;
+  say(`二十一点：四副牌一靴，底注 ${BET}，你先拿 100 个筹码。h 要牌，s 停牌，q 退出。`);
+  while (chips >= BET) {
+    if (shoe.length < 20) {
+      shoe.push(...bShoe());
+      say('牌快发完了，换一副新牌靴。');
+    }
+    const me = [shoe.pop(), shoe.pop()];
+    const you = [shoe.pop(), shoe.pop()];
+    chips -= BET;
+    say(`筹码 ${chips + BET}，下注 ${BET}。`);
+    say(`你：${bHand(you)}  (${bValue(you)})`);
+    say(`我：${bFmt(me[0])} ??`);
+
+    if (bValue(you) === 21) {
+      say('你二十一点。');
+    } else {
+      let bust = false;
+      while (true) {
+        const raw = (await ask('要牌(h) 还是停(s)：')).trim().toLowerCase();
+        if (!raw || /^(q|quit|exit|退出)$/.test(raw)) return;
+        if (!/^(h|hit|要|要牌)$/.test(raw) && !/^(s|stand|停|不要)$/.test(raw)) {
+          say('h 或者 s，别打别的。');
+          continue;
+        }
+        if (/^(s|stand|停|不要)$/.test(raw)) break;
+        you.push(shoe.pop());
+        say(`你：${bHand(you)}  (${bValue(you)})`);
+        if (bValue(you) > 21) {
+          say('爆了。');
+          bust = true;
+          break;
+        }
+        if (bValue(you) === 21) break;
+      }
+      if (bust) {
+        say(`这把输掉，筹码 ${chips}。`);
+        if (chips < BET) break;
+        continue;
+      }
+    }
+
+    say(`我翻开：${bHand(me)}  (${bValue(me)})`);
+    while (bValue(me) < 17) {
+      me.push(shoe.pop());
+      say(`我要一张，我：${bHand(me)}  (${bValue(me)})`);
+    }
+
+    const mine = bValue(me);
+    const yours = bValue(you);
+    const natural = yours === 21 && you.length === 2;
+    if (mine > 21) {
+      chips += natural ? BET * 2.5 : BET * 2;
+      say(natural ? '庄家爆了，你还带个二十一点。' : '我爆了，你赢。');
+    } else if (natural) {
+      chips += BET * 2.5;
+      say('二十一点，按一赔一点五给你。');
+    } else if (yours > mine) {
+      chips += BET * 2;
+      say('你赢了。');
+    } else if (yours === mine) {
+      chips += BET;
+      say('平手，退注。');
+    } else {
+      say('这把归我。');
+    }
+    say(`筹码 ${chips}。`);
+    if (chips < BET) break;
+  }
+  say(chips >= BET ? '不玩了？那筹码我收着了。' : '筹码光了，散场。');
+}
+
 /* ========================= 入口 ========================= */
 
 async function main() {
   say('小鲸鱼的棋牌桌');
-  say('  1) 五子棋   2) 黑白棋   3) 井字棋   q) 退出');
+  say('  1) 五子棋   2) 黑白棋   3) 井字棋   4) 二十一点   q) 退出');
   const pick = (await ask('选一个：')).trim();
   if (/^(1|五子棋|五子)$/.test(pick)) return playGomoku();
   if (/^(2|黑白棋|黑白|奥赛罗)$/.test(pick)) return playOthello();
   if (/^(3|井字棋|井字)$/.test(pick)) return playTicTacToe();
+  if (/^(4|二十一点|21点|廿一点|blackjack)$/i.test(pick)) return playBlackjack();
   say('不选就散了吧。');
 }
 
