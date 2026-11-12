@@ -154,17 +154,32 @@ function gLabel(r, c) {
 
 async function playGomoku() {
   const b = gNew();
-  say('五子棋：你先，黑子。输入坐标，比如 H8。');
+  const hist = [];
+  say('五子棋：你先，黑子。输入坐标，比如 H8。想悔棋输 u。');
   say(gRender(b));
   while (true) {
     const raw = (await ask('你(●)：')).trim();
     if (!raw || /^(q|quit|exit|退出)$/i.test(raw)) return;
+    if (/^(u|undo|悔棋|悔)$/i.test(raw)) {
+      if (!hist.length) {
+        say('还没下呢，悔什么。');
+        continue;
+      }
+      while (hist.length) {
+        const m = hist.pop();
+        b[m.r][m.c] = 0;
+        if (m.who === 1) break;
+      }
+      say(gRender(b));
+      continue;
+    }
     const p = gParse(raw);
     if (!p || b[p.r][p.c] !== 0) {
       say('这手不行，换一个。');
       continue;
     }
     b[p.r][p.c] = 1;
+    hist.push({ r: p.r, c: p.c, who: 1 });
     say(gRender(b));
     if (gWin(b, p.r, p.c, 1)) {
       say('你赢了。行吧。');
@@ -176,6 +191,7 @@ async function playGomoku() {
       return;
     }
     b[mv[0]][mv[1]] = 2;
+    hist.push({ r: mv[0], c: mv[1], who: 2 });
     say(gRender(b));
     say('我下 ' + gLabel(mv[0], mv[1]));
     if (gWin(b, mv[0], mv[1], 2)) {
@@ -338,7 +354,8 @@ function oCount(b) {
 
 async function playOthello() {
   const b = oInit();
-  say('黑白棋：你执黑（●），先手。输入坐标，比如 D3。p 认输，q 退出。');
+  const snaps = [];
+  say('黑白棋：你执黑（●），先手。输入坐标，比如 D3。p 认输，u 悔棋，q 退出。');
   while (true) {
     say(oRender(b));
     const mine = oMoves(b, 1);
@@ -349,11 +366,22 @@ async function playOthello() {
         say('认输也算输。');
         return;
       }
+      if (/^(u|undo|悔棋|悔)$/i.test(raw)) {
+        if (!snaps.length) {
+          say('还没下呢，悔什么。');
+          continue;
+        }
+        const prev = snaps.pop();
+        for (let r = 0; r < ON; r++) b[r] = prev[r].slice();
+        say('悔了。');
+        continue;
+      }
       const p = oParse(raw);
       if (!p || !oFlips(b, p.r, p.c, 1)) {
         say('这手不行，换一个。');
         continue;
       }
+      snaps.push(b.map((row) => row.slice()));
       oApply(b, p.r, p.c, 1);
     } else {
       say('你这轮没得下，跳过我。');
@@ -437,17 +465,34 @@ function tBest(b) {
 
 async function playTicTacToe() {
   const b = tNew();
-  say('井字棋：你是 X，先手。输入格子编号 1-9，q 退出。');
+  const hist = [];
+  say('井字棋：你是 X，先手。输入格子编号 1-9，u 悔棋，q 退出。');
   while (true) {
     say(tRender(b));
     const raw = (await ask('你(X)：')).trim();
     if (!raw || /^(q|quit|exit|退出)$/i.test(raw)) return;
+    if (/^(u|undo|悔棋|悔)$/i.test(raw)) {
+      if (!hist.length) {
+        say('还没下呢，悔什么。');
+        continue;
+      }
+      // 退回到自己上一次落子之前：AI 那手和自己那手一起拿掉
+      while (hist.length) {
+        const j = hist.pop();
+        const wasMine = b[j] === 1;
+        b[j] = 0;
+        if (wasMine) break;
+      }
+      say(tRender(b));
+      continue;
+    }
     const i = parseInt(raw, 10) - 1;
     if (Number.isNaN(i) || i < 0 || i > 8 || b[i] !== 0) {
       say('这手不行，换一个。');
       continue;
     }
     b[i] = 1;
+    hist.push(i);
     if (tWinner(b)) {
       say(tRender(b));
       say('你赢了。');
@@ -460,6 +505,7 @@ async function playTicTacToe() {
     }
     const mv = tBest(b);
     b[mv] = -1;
+    hist.push(mv);
     say('我下 ' + (mv + 1));
     if (tWinner(b)) {
       say(tRender(b));

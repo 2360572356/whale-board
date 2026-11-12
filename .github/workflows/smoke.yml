@@ -19,6 +19,14 @@ jobs:
           printf '1\nH8\nq\n' | node play.js | grep -q 'A B C D E F G'
           printf '2\nD3\nq\n' | node play.js | grep -q 'A B C D E F G H'
           printf '3\n5\nq\n' | node play.js | grep -q '1:·'
+      - name: 悔棋能退干净
+        run: |
+          printf '1\nu\nq\n' | node play.js | grep -q '还没下呢'
+          printf '2\nD3\nu\nq\n' | node play.js | grep -q '悔了'
+          if printf '1\nH8\nu\nH8\nq\n' | node play.js | grep -q '这手不行'; then
+            echo '悔棋没把子拿掉'
+            exit 1
+          fi
       - name: 五子棋 AI 会堵
         run: |
           out=$(printf '1\nH8\nH9\nH10\nq\n' | node play.js)
