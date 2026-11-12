@@ -1,0 +1,18 @@
+{
+  "name": "whale-board",
+  "version": "0.1.0",
+  "description": "终端里的棋牌桌：五子棋 / 黑白棋 / 井字棋，零依赖，带 AI 对手",
+  "main": "play.js",
+  "type": "commonjs",
+  "bin": {
+    "whale-board": "play.js"
+  },
+  "scripts": {
+    "start": "node play.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": ["cli", "game", "gomoku", "othello", "tictactoe"],
+  "license": "MIT"
+}
