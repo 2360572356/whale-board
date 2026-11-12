@@ -1,0 +1,25 @@
+name: smoke
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 语法检查
+        run: node --check play.js
+      - name: 三条线各下一手
+        run: |
+          printf '1\nH8\nq\n' | node play.js | grep -q 'A B C D E F G'
+          printf '2\nD3\nq\n' | node play.js | grep -q 'A B C D E F G H'
+          printf '3\n5\nq\n' | node play.js | grep -q '1:·'
+      - name: 五子棋 AI 会堵
+        run: |
+          out=$(printf '1\nH8\nH9\nH10\nq\n' | node play.js)
+          echo "$out" | grep -q '我下'
