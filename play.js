@@ -131,17 +131,45 @@ function gCandidates(b) {
   return out;
 }
 
+function gTopScore(b, who) {
+  let best = -1;
+  let at = null;
+  for (const [r, c] of gCandidates(b)) {
+    const s = gScore(b, r, c, who);
+    if (s > best) {
+      best = s;
+      at = [r, c];
+    }
+  }
+  return { best, at };
+}
+
+// 一步棋值多少：自己这条线的分，减去落下之后对手最好的一手能拿多少。
+// 这样它才会算「我下这儿之后，他还能从哪儿咬我」，光看自己的分会被人做成双四还不自知。
 function gBest(b, ai, human) {
   const cands = gCandidates(b);
+
+  // 能直接连五就连
   for (const [r, c] of cands) {
     if (gScore(b, r, c, ai) >= 1000000) return [r, c];
   }
-  let best = cands[0];
-  let bestS = -1;
+  // 对手能连五，先堵
   for (const [r, c] of cands) {
-    const s = gScore(b, r, c, ai) + gScore(b, r, c, human) * 0.9;
-    if (s > bestS) {
-      bestS = s;
+    if (gScore(b, r, c, human) >= 1000000) return [r, c];
+  }
+
+  let best = cands[0];
+  let bestV = -Infinity;
+  for (const [r, c] of cands) {
+    const own = gScore(b, r, c, ai);
+    b[r][c] = ai;
+    const opp = gTopScore(b, human).best;
+    b[r][c] = 0;
+    // 自己落下就已经四连两面活，对面堵不住，加分；对面下一手能连五，重罚
+    let v = own - (opp >= 1000000 ? 8000000 : opp * 1.05);
+    if (own >= 100000) v += 400000;
+    if (v > bestV) {
+      bestV = v;
       best = [r, c];
     }
   }
