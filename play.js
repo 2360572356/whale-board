@@ -672,7 +672,14 @@ async function main() {
   say('不选就散了吧。');
 }
 
-main().then(() => rl.close()).catch((e) => {
-  say('出错了：' + (e && e.message ? e.message : e));
-  rl.close();
-});
+if (require.main === module) {
+  main().then(() => rl.close()).catch((e) => {
+    say('出错了：' + (e && e.message ? e.message : e));
+    rl.close();
+  });
+}
+
+// 给 tools/ 下的自测和回放脚本用；直接 `node play.js` 还是走上面的入口。
+module.exports = {
+  gNew, gRender, gParse, gRun, gWin, gScore, gCandidates, gBest, gLabel,
+};

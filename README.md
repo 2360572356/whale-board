@@ -48,8 +48,10 @@ Node 16 往上都行，没装任何 npm 包。
 ## 结构
 
 ```
-play.js       全部代码，一个文件，分四段：五子棋 / 黑白棋 / 井字棋 / 二十一点
-package.json  零依赖，CommonJS
+play.js                        全部代码，一个文件，分四段：五子棋 / 黑白棋 / 井字棋 / 二十一点
+package.json                   零依赖，CommonJS
+tools/gomoku-replay.js         把落子序列还原成整盘，手机上看得见
+tools/gomoku-selfplay.js       五子棋自测：AI 对随机，跑若干盘查合法性和收尾
 ```
 
 想加新棋就照样子写一个 `playXxx()`，在 `main()` 里挂个序号。
@@ -70,3 +72,13 @@ MIT，随便拿去玩。
 node tools/gomoku-replay.js H8 G9 J8
 # 黑子 你是喂进去的坐标，白子是 AI
 ```
+
+## 自测
+
+改完五子棋的 AI 想确认没把它改傻，跑一遍自测（默认 50 盘，AI 执白对随机落子）：
+
+```bash
+node tools/gomoku-selfplay.js 40
+```
+
+只看三件事：有没有落在非法位置、每盘能不能分出胜负、AI 胜率。非法落子会返回非零退出码。
