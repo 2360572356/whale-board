@@ -8,11 +8,18 @@
     "whale-board": "play.js"
   },
   "scripts": {
-    "start": "node play.js"
+    "start": "node play.js",
+    "test": "node tools/gomoku-check.js"
   },
   "engines": {
     "node": ">=16"
   },
-  "keywords": ["cli", "game", "gomoku", "othello", "tictactoe"],
+  "keywords": [
+    "cli",
+    "game",
+    "gomoku",
+    "othello",
+    "tictactoe"
+  ],
   "license": "MIT"
 }
