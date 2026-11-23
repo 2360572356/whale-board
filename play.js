@@ -166,7 +166,7 @@ function gBest(b, ai, human) {
     const opp = gTopScore(b, human).best;
     b[r][c] = 0;
     // 自己落下就已经四连两面活，对面堵不住，加分；对面下一手能连五，重罚
-    let v = own - (opp >= 1000000 ? 8000000 : opp * 1.05);
+    let v = own * 1.3 - (opp >= 1000000 ? 8000000 : opp * 0.9);
     if (own >= 100000) v += 400000;
     if (v > bestV) {
       bestV = v;
